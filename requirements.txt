@@ -1,0 +1,16 @@
+langgraph
+dotenv
+
+langchain
+langchain-community
+langchain-core
+
+# OpenAI Integration
+langchain-openai
+openai
+
+# Hugging Face Integration
+langchain-huggingface
+transformers
+huggingface-hub
+streamlit
