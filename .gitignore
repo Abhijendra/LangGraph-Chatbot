@@ -4,7 +4,7 @@ __pycache__/
 # *.pyo
 # *.pyd
 # .Python
-# venv/
+.venv/
 
 # IDE and editor files
 .vscode/
@@ -20,3 +20,5 @@ logs/
 
 # Streamlit
 .streamlit/
+
+chatbot.db
