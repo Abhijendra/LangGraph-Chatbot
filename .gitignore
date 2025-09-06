@@ -1,0 +1,22 @@
+# Python-specific
+__pycache__/
+# *.pyc
+# *.pyo
+# *.pyd
+# .Python
+# venv/
+
+# IDE and editor files
+.vscode/
+
+# Environment variables
+.env
+
+# Logs
+logs/
+*.log
+# !important.log  # Keep this specific log file
+
+
+# Streamlit
+.streamlit/
