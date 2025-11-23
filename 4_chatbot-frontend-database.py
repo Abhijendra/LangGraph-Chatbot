@@ -1,9 +1,10 @@
 import streamlit as st 
 import logging
-from langgraph_database_backend import chatbot, get_all_threads
+from langgraph_tool_backend import chatbot, get_all_threads
 from langchain_core.messages import HumanMessage
 import uuid  
 from datetime import datetime
+from utilities import assign_topic, save_topic, load_topics
 import os
 
 ENABLE_LOGGING = os.getenv('ENABLE_LOGGING', 'True').lower() == 'true'
@@ -66,21 +67,24 @@ if 'thread_id' not in st.session_state:
 if 'chat_threads' not in st.session_state:
     st.session_state['chat_threads'] = get_all_threads()
 
+if 'chat_topics' not in st.session_state:
+    st.session_state['chat_topics'] = load_topics()
+
 add_thread(thread_id=st.session_state['thread_id'])
     
 
 # ********************************** SideBar UI ****************************************
 
-st.sidebar.title('LangGraph Chatbot')
+st.sidebar.title('Our Personal Chatbot')
 
 if st.sidebar.button('New Chat'):
     reset_chat()
     
-
 st.sidebar.header('My Conversations')
 
 for thread_id in st.session_state['chat_threads'][::-1]:
-    if st.sidebar.button(str(thread_id)):
+    topic_name = st.session_state['chat_topics'].get(thread_id,'Untitled')
+    if st.sidebar.button(topic_name, key=thread_id):
         messages = load_conversation(thread_id)
         st.session_state['thread_id'] = thread_id
 
@@ -94,6 +98,15 @@ for thread_id in st.session_state['chat_threads'][::-1]:
             temp_messages.append({'role':role, 'content':msg.content})
     
         st.session_state['message_history'] = temp_messages
+
+if topic_name == "Untitled" and len(st.session_state['message_history']) >= 2:
+    topic_name = assign_topic(st.session_state['message_history'])
+    st.session_state['chat_topics'][st.session_state['thread_id']] = topic_name
+    char_length = save_topic(st.session_state['thread_id'], topic_name)
+    if char_length:
+        logger.info(f"Topic name {topic_name} saved successfully to csv file.")
+    else:
+        logger.info("Topic name not saved to csv due to unknown reason.")
 
 
 # ********************************** Main UI *******************************************
@@ -126,6 +139,8 @@ if user_input:
             llm_response = st.write_stream(message_chunk.content for message_chunk, metadata in stream_generator)
 
             st.session_state['message_history'].append({'role':'assistant','content':llm_response})
+
+
 
     except Exception as e:
         logger.error(f"Error processing user input: {str(e)}", exc_info=True)

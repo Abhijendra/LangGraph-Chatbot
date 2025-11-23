@@ -15,7 +15,7 @@ load_dotenv()
 class ChatState(TypedDict):
     messages:Annotated[list[BaseMessage],  add_messages] # BaseMessage because it is superclass of HumanMessage, AIMessage, ToolMessage and SystemMessage # add_messages is more optimized that operator.add (reduce method) and is recommended by LangGraph
 
-model = ChatOpenAI(model='gpt-4o-mini')
+model = ChatOpenAI(model='gpt-3.5-turbo')
 
 def chat_node(state:ChatState):
 
