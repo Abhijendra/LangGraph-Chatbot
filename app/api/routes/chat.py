@@ -14,6 +14,8 @@ logger = logging.getLogger(__name__)
 @router.post("/query", response_model=QueryResponse)
 async def query(request: QueryRequest):
 
+    logger.info(f"Request recieved from the user: {request.query}")
+    
     state = {"messages":[ HumanMessage(content=request.query)]}
 
     raw_res = await chat_node(state=state)
