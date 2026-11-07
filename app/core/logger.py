@@ -42,7 +42,7 @@ class StructuredFormatter(logging.Formatter):
             
         # Local development string formatting (Clean, human-readable console layout)
         context_str = f" | {ctx}" if ctx else ""
-        return f"{log_data['timestamp']} | {log_data['level']} | {log_data['logger']}{context_str}: {log_data['message']}"
+        return f"{log_data['timestamp']} | {log_data['level']} | {log_data['logger']}{context_str} | {log_data['message']}"
 
 
 def setup_logging() -> None:
@@ -51,7 +51,7 @@ def setup_logging() -> None:
     Ensures unified telemetry format across the entire service.
     """
     # Determine default global logging level based on configuration settings
-    log_level = logging.DEBUG if settings.DEBUG else logging.INFO
+    log_level = logging.INFO if settings.DEBUG else logging.INFO
     
     # Initialize standard stream console handler
     console_handler = logging.StreamHandler(sys.stdout)
@@ -63,8 +63,11 @@ def setup_logging() -> None:
     root_logger.handlers = [console_handler]
     
     # Silence overly verbose external dependencies if needed
-    logging.getLogger("httpx").setLevel(logging.WARNING)
-    logging.getLogger("openai").setLevel(logging.WARNING)
+    for n in ("httpx", "httpx2", "httpcore", "httpcore2", "openai"):
+        logging.getLogger(n).setLevel(logging.WARNING)
+    
+    # logging.getLogger("httpx").setLevel(logging.WARNING)
+    # logging.getLogger("openai").setLevel(logging.WARNING)
     
     # Redirect Uvicorn webserver log output through our custom formatter
     for logger_name in ("uvicorn.error", "uvicorn.access", "fastapi"):
