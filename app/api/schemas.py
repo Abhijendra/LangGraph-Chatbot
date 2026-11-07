@@ -3,6 +3,7 @@ from pydantic import BaseModel, Field, field_validator
 
 class QueryRequest(BaseModel):
 
+    session_id: str = Field(..., min_length=1)
     userid: str = Field(..., min_length=1, max_length=10)
     username: str | None = Field(default=None) 
     query: str = Field(..., min_length=1, max_length=4000)
