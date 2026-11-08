@@ -27,5 +27,12 @@ def get_stock_price(symbol: str) -> dict:
     # logger.info(f"HTTP Response status code: {res.status_code}")
     return res.json()
 
+
+def fetch_db_data():
+    """
+    Fetch data from postgresql DB.
+    """
+    pass
+
 tools = [get_stock_price]
 tool_node = ToolNode(tools)

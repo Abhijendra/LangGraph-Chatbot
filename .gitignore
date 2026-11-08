@@ -25,3 +25,6 @@ db_files/
 chatbot.db
 chatbot.db-shm
 chatbot.db-wal
+
+scope.txt
+handbook.md
