@@ -41,7 +41,7 @@ async def chat_node(state: ChatState):
 
     response = await llm_chain.ainvoke({"messages":messages})
     
-    logger.info(f"Tool calls from LLM: {response.tool_calls}")
+    # logger.info(f"Tool calls from LLM: {response.tool_calls}")
     logger.info(f"Usage Metadata: {response.usage_metadata}")
     
     return {"messages": [response]}

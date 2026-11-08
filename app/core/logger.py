@@ -1,8 +1,12 @@
 import logging
+from logging.handlers import RotatingFileHandler
+from pathlib import Path
 import sys
 from contextvars import ContextVar
 from typing import Any
 from app.core.config import settings
+
+LOG_DIR = Path(__file__).resolve().parents[2] / "logs"
 
 # ContextVar allows you to pass context safely down concurrent async requests/tasks
 # We use this to track LangGraph thread IDs dynamically across the request lifespan
@@ -23,6 +27,8 @@ class StructuredFormatter(logging.Formatter):
             "timestamp": self.formatTime(record, self.datefmt),
             "level": record.levelname,
             "logger": "uvicorn" if record.name == "uvicorn.error" else record.name,
+            "function": record.funcName,
+            "line": record.lineno,
             "message": record.getMessage(),
             "env": settings.ENVIRONMENT.value
         }
@@ -42,7 +48,7 @@ class StructuredFormatter(logging.Formatter):
             
         # Local development string formatting (Clean, human-readable console layout)
         context_str = f" | {ctx}" if ctx else ""
-        return f"{log_data['timestamp']} | {log_data['level']} | {log_data['logger']}{context_str} | {log_data['message']}"
+        return f"{log_data['timestamp']} | {log_data['level']} | {log_data['logger']}:{log_data['function']}:{log_data['line']}{context_str} | {log_data['message']}"
 
 
 def setup_logging() -> None:
@@ -56,11 +62,20 @@ def setup_logging() -> None:
     # Initialize standard stream console handler
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setFormatter(StructuredFormatter(datefmt="%Y-%m-%d %H:%M:%S"))
-    
+
+    file_handler = RotatingFileHandler(
+        LOG_DIR / "app.log",
+        maxBytes=10 * 1024 * 1024, # 10 MB per file
+        backupCount=1,
+        encoding="utf-8"
+    )
+
+    file_handler.setFormatter(StructuredFormatter(datefmt="%Y-%m-%d %H:%M:%S"))
+
     # Configure root logger rules
     root_logger = logging.getLogger()
     root_logger.setLevel(log_level)
-    root_logger.handlers = [console_handler]
+    root_logger.handlers = [console_handler, file_handler]
     
     # Silence overly verbose external dependencies if needed
     for n in ("httpx", "httpx2", "httpcore", "httpcore2", "openai"):
@@ -72,5 +87,5 @@ def setup_logging() -> None:
     # Redirect Uvicorn webserver log output through our custom formatter
     for logger_name in ("uvicorn.error", "uvicorn.access", "fastapi"):
         framework_logger = logging.getLogger(logger_name)
-        framework_logger.handlers = [console_handler]
+        framework_logger.handlers = [console_handler, file_handler]
         framework_logger.propagate = False
