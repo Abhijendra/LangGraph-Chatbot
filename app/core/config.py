@@ -42,6 +42,8 @@ class Settings(BaseSettings):
     # Controls which checkpointer backend to use for LangGraph memory
     CHECKPOINTER_TYPE: Literal["memory", "sqlite", "postgres"] = "sqlite"
 
+    HR_DATABASE_URL: SecretStr
+    HR_DATABASE_POOL_SIZE: int = 5
 
     # ==========================================
     # 3. LLM Provider API Keys & Settings

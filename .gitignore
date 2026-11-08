@@ -28,3 +28,6 @@ chatbot.db-wal
 
 scope.txt
 handbook.md
+
+scripts/
+docs/
