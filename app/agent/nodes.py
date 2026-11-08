@@ -1,20 +1,26 @@
 # Node functions (LLM orchestration, logic)
 
+import logging
 import asyncio
 from datetime import datetime
 
 from langchain_openai import ChatOpenAI
+from langchain_core.messages import HumanMessage
 
 from app.core.config import settings
 from app.agent.state import ChatState
 from app.agent.prompts import get_chat_prompt_template
-from langchain_core.messages import HumanMessage
+from app.agent.tools import tools
+
+logger = logging.getLogger(__name__)
 
 model = ChatOpenAI(
     model=settings.DEFAULT_MODEL_NAME,
     temperature=settings.MODEL_TEMPERATURE,
     api_key=settings.OPENAI_API_KEY.get_secret_value() if settings.OPENAI_API_KEY else None
 )
+
+model_with_tools = model.bind_tools(tools)
 
 async def chat_node(state: ChatState):
     """
@@ -29,11 +35,14 @@ async def chat_node(state: ChatState):
         current_time = current_time
     )
 
-    llm_chain = local_prompt | model
+    llm_chain = local_prompt | model_with_tools
 
     messages = state["messages"]
 
     response = await llm_chain.ainvoke({"messages":messages})
+    
+    logger.info(f"Tool calls from LLM: {response.tool_calls}")
+    logger.info(f"Usage Metadata: {response.usage_metadata}")
     
     return {"messages": [response]}
 

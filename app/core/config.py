@@ -53,7 +53,7 @@ class Settings(BaseSettings):
     DEFAULT_MODEL_NAME: str = "gpt-5-nano"
     MODEL_TEMPERATURE: float = 0.0
 
-
+    ALPHA_VANTAGE_API_KEY: SecretStr | None = None
     # ==========================================
     # 4. Pydantic Settings Rules
     # ==========================================

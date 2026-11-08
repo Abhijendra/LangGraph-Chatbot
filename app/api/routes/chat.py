@@ -6,7 +6,7 @@ from langchain_core.messages import HumanMessage
 
 from app.api.schemas import QueryRequest, QueryResponse
 from app.api.dependencies import get_chatbot
-
+from app.core.callbacks import TraceHandler
 router = APIRouter()
 
 logger = logging.getLogger(__name__)
@@ -17,10 +17,13 @@ async def query(request: QueryRequest, graph = Depends(get_chatbot)):
     logger.info(f"Request recieved from the user: {request.query}")
     
     state = {"messages":[ HumanMessage(content=request.query)]}
-
+    
+    thread_id = f"{request.userid}:{request.session_id}"
     config = {
-        "configurable": {"thread_id": f"{request.userid}:{request.session_id}"}
+        "configurable": {"thread_id": thread_id},
+        "callbacks": [TraceHandler(thread_id)]
     }
+    
     raw_res = await graph.ainvoke(state,config=config)
 
     # res.content
