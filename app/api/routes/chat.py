@@ -20,7 +20,9 @@ async def query(request: QueryRequest, graph = Depends(get_chatbot)):
     
     thread_id = f"{request.userid}:{request.session_id}"
     config = {
-        "configurable": {"thread_id": thread_id},
+        "configurable": {"thread_id": thread_id, 
+                         "user_id": "AVG002",
+                         "role": "CTO"},
         "callbacks": [TraceHandler(thread_id)]
     }
     
