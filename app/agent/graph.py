@@ -6,7 +6,7 @@ from langgraph.checkpoint.memory import InMemorySaver
 
 from app.agent.state import ChatState
 from app.agent.nodes import chat_node
-from app.agent.tools import tool_node
+from app.agent.tools.registry import tool_node
 
 def get_graph():
     graph = StateGraph(ChatState)

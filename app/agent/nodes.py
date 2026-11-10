@@ -10,7 +10,7 @@ from langchain_core.messages import HumanMessage
 from app.core.config import settings
 from app.agent.state import ChatState
 from app.agent.prompts import get_chat_prompt_template
-from app.agent.tools import tools
+from app.agent.tools.registry import tools
 
 logger = logging.getLogger(__name__)
 
