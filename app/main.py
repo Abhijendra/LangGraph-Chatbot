@@ -2,8 +2,11 @@ import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
 from sqlalchemy import text
 from app.core.logger import setup_logging
+from app.core.config import settings
 from app.agent.graph import get_graph
 from app.db.engine import engine, SessionLocal
 from app.api.routes.chat import router as chat_router
@@ -32,6 +35,19 @@ async def lifespan(app: FastAPI):
         await engine.dispose()
 
 app = FastAPI(lifespan=lifespan)
+
+# Only the origins listed in BACKEND_CORS_ORIGINS may call this API from a browser.
+# Pydantic adds a trailing "/" to URLs, but browsers send origins without it.
+cors_origins = [str(origin).rstrip("/") for origin in settings.BACKEND_CORS_ORIGINS]
+
+if cors_origins:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=cors_origins,
+        allow_credentials=False,
+        allow_methods=["GET", "POST"],
+        allow_headers=["Authorization", "Content-Type"]
+    )
 
 app.include_router(
     chat_router,

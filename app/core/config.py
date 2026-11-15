@@ -1,6 +1,6 @@
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, SettingsConfigDict, NoDecode
 from pydantic import AnyHttpUrl, field_validator, SecretStr
-from typing import Literal
+from typing import Annotated, Literal
 from pathlib import Path
 from enum import Enum
 
@@ -23,7 +23,8 @@ class Settings(BaseSettings):
     DEBUG: bool = False
 
     # CORS Origins (Decoded from a comma-separated string)
-    BACKEND_CORS_ORIGINS: list[AnyHttpUrl] = []
+    # NoDecode stops pydantic-settings from forcing JSON parsing, so the validator below can split the comma list
+    BACKEND_CORS_ORIGINS: Annotated[list[AnyHttpUrl], NoDecode] = []
 
     @field_validator("BACKEND_CORS_ORIGINS", mode="before")
     @classmethod
