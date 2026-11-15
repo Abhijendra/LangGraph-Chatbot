@@ -4,9 +4,10 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from sqlalchemy import text
 from app.core.logger import setup_logging
-from app.api.routes.chat import router as chat_router
 from app.agent.graph import get_graph
 from app.db.engine import engine, SessionLocal
+from app.api.routes.chat import router as chat_router
+from app.api.routes.auth import router as auth_router
 
 # Setup unified logging system immediately on application import
 setup_logging()
@@ -37,6 +38,12 @@ app.include_router(
     prefix="/chat",
     tags=["Users query"]
     )
+
+app.include_router(
+    auth_router,
+    prefix="/auth",
+    tags=["Login"]
+)
 
 
 @app.get("/health")

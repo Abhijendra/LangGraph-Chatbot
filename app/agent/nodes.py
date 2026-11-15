@@ -6,11 +6,13 @@ from datetime import datetime
 
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage
+from langchain_core.runnables import RunnableConfig
 
 from app.core.config import settings
 from app.agent.state import ChatState
 from app.agent.prompts import get_chat_prompt_template
-from app.agent.tools.registry import tools
+from app.agent.tools.registry import tools_for
+from app.core.auth import Role
 
 logger = logging.getLogger(__name__)
 
@@ -20,12 +22,14 @@ model = ChatOpenAI(
     api_key=settings.OPENAI_API_KEY.get_secret_value() if settings.OPENAI_API_KEY else None
 )
 
-model_with_tools = model.bind_tools(tools)
 
-async def chat_node(state: ChatState):
+
+async def chat_node(state: ChatState, config:RunnableConfig):
     """
     A LangGraph node that executes the LLM with injected prompts and history.
     """
+    role = Role(config["configurable"]["role"])
+    model_with_tools = model.bind_tools(tools_for(role))
 
     prompt_template = get_chat_prompt_template()
 

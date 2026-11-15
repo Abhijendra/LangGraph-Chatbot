@@ -48,8 +48,13 @@ class StructuredFormatter(logging.Formatter):
             
         # Local development string formatting (Clean, human-readable console layout)
         context_str = f" | {ctx}" if ctx else ""
-        return f"{log_data['timestamp']} | {log_data['level']} | {log_data['logger']}:{log_data['function']}:{log_data['line']}{context_str} | {log_data['message']}"
 
+        line = (f"{log_data['timestamp']} | {log_data['level']} | {log_data['logger']}:{log_data['function']}:{log_data['line']}{context_str} | {log_data['message']}")
+
+        if "exception" in log_data:
+            line += "\n" + log_data["exception"]
+
+        return line
 
 def setup_logging() -> None:
     """

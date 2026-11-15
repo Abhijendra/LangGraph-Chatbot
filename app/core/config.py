@@ -68,5 +68,16 @@ class Settings(BaseSettings):
         case_sensitive=True
     )
 
+    # ==========================================
+    # 5. JWT / Auth
+    # ==========================================
+
+    JWT_SECRET_KEY:SecretStr
+    JWT_ALGORITHM:str = 'HS256'
+    JWT_EXPIRE_MINUTES:int = 30
+    
+    # DEV ONLY: shared password for the login stub
+    DEV_LOGIN_PASSWORD: SecretStr | None = None
+
 # Pydantic will read from the environment first, then fallback to .env, then defaults
 settings = Settings()

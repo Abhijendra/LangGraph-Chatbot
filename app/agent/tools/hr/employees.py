@@ -5,28 +5,33 @@ from langchain_core.tools import tool
 
 from sqlalchemy.exc import SQLAlchemyError
 
-from app.core.auth import UserContext
-from app.db.repository import get_by_name, get_department_by_id
+from app.core.rbac import PermissionDenied
+from app.db.repository import get_by_name, get_department_by_id, get_employee_details
+from app.agent.tools.utils import get_user_context
 
 logger = logging.getLogger(__name__)
 
 DB_UNAVAILABLE_MSG = "The employee database is unavailable right now. Please try again later."
 
-def get_user_context(config:RunnableConfig):
-    user_id = config.get("configurable", {}).get("user_id")
-    role = config.get("configurable", {}).get("role")
+# def get_user_context(config:RunnableConfig):
+#     user_id = config.get("configurable", {}).get("user_id")
+#     role = config.get("configurable", {}).get("role")
 
-    logger.info(f"Tool call by LLM done for User id : {user_id} | Role: {role}")
+#     logger.info(f"Tool call by LLM done for User id : {user_id} | Role: {role}")
 
-    if user_id is None or role is None:
-        raise ValueError("User not found.")
+#     if user_id is None or role is None:
+#         raise ValueError("User not found.")
     
-    return UserContext(user_id, role)
+#     return UserContext(user_id, Role(role))
 
 async def run_query(query_fn, *args, not_found:str, **kwargs) -> str | list[dict]:
 
     try:
         rows = await query_fn(*args, **kwargs)
+
+    except PermissionDenied as e:
+        logger.warning(f"ACCESS DENIED in {query_fn.__name__}: {e}")
+        return str(e)
 
     except (SQLAlchemyError, OSError):
         logger.exception("Database Error in %s", query_fn.__name__)
@@ -68,4 +73,21 @@ async def get_department_details_by_id(config:RunnableConfig,
     depts = await run_query(get_department_by_id, user, department_id, not_found="No department found.")
     return depts
 
-hr_tools = [get_employees_by_name, get_department_details_by_id]
+@tool
+async def get_employee_details_by_id(config:RunnableConfig,
+                                     employee_id: int) -> str | list[dict]:
+    """
+    Fetch the full details (email, phone, salary, hire date...) of one employee by id.
+    Access is checked automatically: normal employees can only see their own record.
+
+    Arguments:
+    employee_id: int
+    """
+    user = get_user_context(config)
+    return await run_query(get_employee_details, user, employee_id, not_found="No employee found.")
+
+hr_tools = [
+    get_employees_by_name, 
+    get_department_details_by_id,
+    get_employee_details_by_id
+]

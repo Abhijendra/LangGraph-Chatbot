@@ -6,13 +6,13 @@ from langgraph.checkpoint.memory import InMemorySaver
 
 from app.agent.state import ChatState
 from app.agent.nodes import chat_node
-from app.agent.tools.registry import tool_node
+from app.agent.tools.registry import guarded_tool_node
 
 def get_graph():
     graph = StateGraph(ChatState)
 
     graph.add_node("chat_node", chat_node)
-    graph.add_node("tools", tool_node)
+    graph.add_node("tools", guarded_tool_node)
 
 
     graph.add_edge(START, "chat_node")
