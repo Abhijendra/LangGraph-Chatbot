@@ -34,8 +34,8 @@ class TraceHandler(AsyncCallbackHandler):
     async def on_llm_end(self, response, **kwargs):
         gen = response.generations[0][0]    
         msg = getattr(gen, "message", None)
-        calls = getattr(gen, "tool_calls", None)
-        usage = getattr(gen, "usage_metadaa", None)
+        calls = [c["name"] for c in (getattr(msg, "tool_calls", None) or [])]
+        usage = getattr(msg, "usage_metadata", None)
         logger.info(f"[{self.thread_id}] LLM END tool_calls={calls} usage={usage}")
 
     

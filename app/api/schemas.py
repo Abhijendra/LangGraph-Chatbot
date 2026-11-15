@@ -3,9 +3,9 @@ from pydantic import BaseModel, Field, field_validator
 
 class QueryRequest(BaseModel):
 
-    session_id: str = Field(..., min_length=1)
+    session_id: str = Field(..., min_length=1, max_length=64, pattern=r"^[A-Za-z0-9_-]+$")
     # userid: str = Field(..., min_length=1, max_length=10) # Outdated/Stale
-    # username: str | None = Field(default=None) 
+    # username: str | None = Field(default=None) # Stale
     query: str = Field(..., min_length=1, max_length=4000)
 
     @field_validator("query")

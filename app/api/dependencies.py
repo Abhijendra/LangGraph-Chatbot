@@ -18,13 +18,16 @@ def get_chatbot(request: Request) -> CompiledStateGraph:
 bearer_scheme = HTTPBearer() # also adds the "Authorize" button in /docs
 
 def get_current_user(
+        request:Request,
         creds: HTTPAuthorizationCredentials = Depends(bearer_scheme)
     ) -> UserContext:
     try:
         payload = decode_access_token(creds.credentials)
-        return UserContext(
+        user = UserContext(
             user_id=payload["sub"],
             role= Role(payload["role"])
         )
+        request.state.user_id = user.user_id
+        return user
     except (jwt.InvalidTokenError, KeyError, ValueError):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid or expired Token", headers={"WWW-Authenticate": "Bearer"})

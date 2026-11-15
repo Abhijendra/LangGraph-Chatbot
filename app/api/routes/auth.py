@@ -1,19 +1,21 @@
 import secrets
 import logging
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Request
 
 from app.core.config import settings
 from app.api.schemas import LoginRequest, TokenResponse
 from app.db.repository import get_login_info
 from app.core.rbac import role_from_job_title
 from app.core.security import create_access_token
+from app.core.rate_limit import limiter
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
 @router.post("/login", response_model=TokenResponse)
-async def login(body: LoginRequest):
+@limiter.limit("5/minute")
+async def login(request:Request, body: LoginRequest):
     expected = settings.DEV_LOGIN_PASSWORD
     if expected is None or not secrets.compare_digest(body.password, expected.get_secret_value()):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid Credentials")
