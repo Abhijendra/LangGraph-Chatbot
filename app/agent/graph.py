@@ -1,14 +1,13 @@
 # StateGraph construction & compilation
 
 from langgraph.graph import StateGraph, END, START
-from langgraph.checkpoint.memory import InMemorySaver
 
 from app.agent.state import ChatState
 from app.agent.nodes import chat_node
 from app.agent.tools.registry import guarded_tool_node
 from app.agent.summarizer import summarize_node, route_after_chat
 
-def get_graph():
+def get_graph(checkpointer):
     graph = StateGraph(ChatState)
 
     graph.add_node("chat_node", chat_node)
@@ -23,10 +22,5 @@ def get_graph():
     graph.add_edge("summarize", END)
 
     
-    chatbot = graph.compile(checkpointer=InMemorySaver())
+    chatbot = graph.compile(checkpointer=checkpointer)
     return chatbot
-
-if __name__ == "__main__":
-
-    chatbot = get_graph()
-    print(chatbot)

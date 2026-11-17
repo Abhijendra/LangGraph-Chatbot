@@ -42,7 +42,8 @@ class Settings(BaseSettings):
     
     # Controls which checkpointer backend to use for LangGraph memory
     CHECKPOINTER_TYPE: Literal["memory", "sqlite", "postgres"] = "sqlite"
-
+    CHECKPOINTER_SQLITE_PATH: str = "db_files/checkpointer.db"
+    CHECKPOINTER_POSTGRES_URL: SecretStr | None = None
     HR_DATABASE_URL: SecretStr
     HR_DATABASE_POOL_SIZE: int = 5
 

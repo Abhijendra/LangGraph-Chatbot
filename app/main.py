@@ -12,6 +12,7 @@ from app.core.logger import setup_logging
 from app.core.config import settings
 from app.core.rate_limit import limiter
 from app.agent.graph import get_graph
+from app.agent.checkpointer import make_checkpointer
 from app.db.engine import engine, SessionLocal
 from app.api.routes.chat import router as chat_router
 from app.api.routes.auth import router as auth_router
@@ -28,13 +29,16 @@ async def lifespan(app: FastAPI):
         async with engine.connect() as conn:
             await conn.execute(text("SELECT 1"))
         logger.info(f"HR database connection OK.")
-        
-        app.state.graph = get_graph()
-        yield
+        async with make_checkpointer() as cp:
+            app.state.graph = get_graph(checkpointer=cp)
+            yield
 
-    except ConnectionError as e:
-        logger.error(f"HR Database connection Error: {e}", exc_info=True)
-    
+    except Exception:
+        # Log, then re-raise: swallowing here would end the generator without a
+        # yield and hide the real cause behind "generator didn't yield".
+        logger.exception("Application startup failed")
+        raise
+
     finally:
         await engine.dispose()
 
